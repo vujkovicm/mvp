@@ -15,23 +15,23 @@ steps:
 
 2. download and install git on R04-WM Citrix 65 Desktop (single instance allowed)
 
-3. clone git snakemake source files to /genxfer/to_gensis/vhaphileej
-	- in Citrix Desktop, go to \\vashare.genisis.med.va.gov\genisis_xfer\to_genisis
+3. clone git snakemake source files to $TRANSFER
+	- in Citrix Desktop, go to $TRANSFER
 	- right-click and select GIT BASH HERE
 	- git clone https://bitbucket.org/snakemake/snakemake.git
-	- in terminal, copy snakemake git from /genxfer/to_genisis/vhaphileej to /group/research/mvp001/snakemake
-	- go to /group/research/mvp001/snakemake
+	- in terminal, copy snakemake git from {transfer} to $SNAKE
+	- go to $SNAKE
 	- create virtual environment to work around Anaconda3 package install limitation
 	- virtualenv -p python3 .venv
 
-4. download Anaconda packages in /genxfer/to_gensis/vhaphileej/pkgs
-	- copy required packages to /group/research/mvp001/snakemake/.venv
+4. download Anaconda packages in $TRANSFER
+	- copy required packages to $SNAKE/.venv
 	- go to .venv directory: unzip all packages: cat *.tar.bz2 | tar xvfj - -i
-	- from snakemake directory, run: pip install --no-index file:/group/research/mvp001/snakemake
-	- if there package dependencies, download them in genxfer pkgs and copy to .venv and unzip
+	- from snakemake directory, run: pip install --no-index file:$SNAKE
+	- if there package dependencies, download them in $TRANSFER and copy to .venv and unzip
 	- then rerun the pip install command untill it gives you no errors
 	- make sure to install conda conda-env and conda-build for proper functioning
 
 5. Now that snakemake environment is functional, activate it: 
-	- cd /group/research/mvp001/snakemake
+	- cd $SNAKE
 	- source .venv/bin/activate
