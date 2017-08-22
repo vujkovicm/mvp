@@ -1,0 +1,84 @@
+######################################
+# Author: Marijana Vujkovic
+# Date: 08/22/2017
+#
+# assoc-chp.rules
+######################################
+
+# create phenotype file for rvtest 
+rule chpPheno:
+	input:
+		cube = "pheno/{phe}_datacube.modified.csv",
+		ids  = "pop/MVP001.{pop}.ids",
+		pca  = "pop/MVP001.{pop}.pca"
+	output:
+		"out/chp/{phe}/{phe}_phenotype_{pop}_cohort.phe"
+	shell:
+		"""
+		Rscript scripts/R/rvtestPheno.R '{input.cube}' '{input.ids}' '{input.pca}' '{output}'
+		"""
+
+# get names as covariates as plain text
+def chpCovar(filename):
+	with open(filename, 'r') as f:
+		str = f.readline()
+	words = str.split()
+	del words[0:5]
+	del words[config['chpPheno']]
+	# remaining covariates as string
+	return ' '.join(words)
+
+# submit rvtest
+rule chpRvtest:
+	input:
+		phe = "out/chp/{phe}/{phe}_phenotype_{pop}_cohort.phe",
+		chr = "/scratch/scratch2/mvp001/jiehuang/data/mvp/v2.1.chr{chr}.vcf.gz"
+	output:
+		"out/chp/{phe}/{pop}/rvtest/{phe}.{pop}.chp.chr{chr}.SingleScore.assoc"
+	run:
+		covar = chpCovar({input.phe})
+		shell("""
+			rvtest --noweb \
+			--inVCF {input.chr} \
+			--pheno {input.phe} \
+			--pheno-name {wildcards.phe} \
+			--covar {input.phe} \
+			--covar-name {covar}) \
+			--freqLower 0.001 \
+			--single score \
+			--impute drop \
+			--out out/chp/{wildcards.phe}/{wildcards.pop}/rvtest/{wildcards.phe}.{wildcards.pop}.chp.chr{wildcards.chr}
+			"""
+		)
+
+# merge output from chromosomes
+rule chpMrgRvtest:
+	input:
+		"out/chp/{phe}/{pop}/rvtest/{phe}.{pop}.chr{chr}.SingleScore.assoc" for chr in range(1, 22)
+	output:
+		"out/chp/{phe}/{pop}/summary/{phe}.{pop}.chp.rvtest.out"
+	shell:
+		"""
+		awk -v afB=0.0005 cut -v afB=0.9995 'NR>1 && NF==13 && $6 > afA && $6 < afB && $13!="NA" {{ print "chr"$1":"$2, $1, $2, $3, $4, $5, $6, $11, $12, $13 }}' {input} >> {output}
+		"""
+
+rule chpMafRvtest:
+	input:
+		"out/chp/{phe}/{pop}/summary/{phe}.{pop}.chp.rvtest.out"
+	output:
+		"out/chp/{phe}/{pop}/summary/{phe}.{pop}.chp.maf{maf}.rvtest.out"
+	shell:
+		"""
+		awk -v maf={wildcards.maf} 'NR==1 || ($7>maf && $7<0.99) {{print $1, $4, $5, $6, $8, $9, $10}}' {input} > {output}
+		"""
+
+rule chpPlot:
+	input:
+		"out/chp/{phe}/{pop}/summary/{phe}.{pop}.chp.maf{maf}.rvtest.out"
+	output:
+		m = "out/chp/{phe}/{pop}/summary/{phe}.{pop}.chp.maf{maf}.rvtest.m.png",
+		q = "out/chp/{phe}/{pop}/summary/{phe}.{pop}.chp.maf{maf}.rvtest.q.png"
+	shell:
+		"""
+		Rscript scripts/R/rvtestPlots.R '{input}' '{output.m}' '{output.q}'
+		"""
