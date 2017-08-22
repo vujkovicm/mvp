@@ -6,4 +6,4 @@ include:
 	"rules/assoc-chp.rules"
 
 # run jobs like a boss 
-# snakemake -j 900 --keep-going -c "bsug -M 30960" target
+# snakemake -j 900 --keep-going -c "bsub -M 30960" target
