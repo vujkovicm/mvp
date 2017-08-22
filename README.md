@@ -3,6 +3,7 @@
 snakemake install documentation
 
 problem 1: 	no internet access on GenISIS grid 
+
 problem 2: 	no rights to install Anaconda packages in /group/tools/Anaconda/Anaconda3
 
 workaround:	installation from source in a virtual environment
