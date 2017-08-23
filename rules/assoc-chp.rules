@@ -43,7 +43,7 @@ rule chpRvtest:
 			--pheno {input.phe} \
 			--pheno-name {wildcards.phe} \
 			--covar {input.phe} \
-			--covar-name {covar}) \
+			--covar-name {covar} \
 			--freqLower 0.001 \
 			--single score \
 			--impute drop \
