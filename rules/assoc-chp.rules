@@ -25,7 +25,6 @@ def chpCovar(filename):
 	words = str.split()
 	del words[0:5]
 	words.remove(config['chpPheno'])
-	# remaining covariates as string
 	return ' '.join(words)
 
 # submit rvtest
