@@ -24,7 +24,7 @@ def chpCovar(filename):
 		str = f.readline()
 	words = str.split()
 	del words[0:5]
-	del words[config['chpPheno']]
+	words.remove(config['chpPheno'])
 	# remaining covariates as string
 	return ' '.join(words)
 
@@ -36,7 +36,7 @@ rule chpRvtest:
 	output:
 		"out/chp/{phe}/{pop}/rvtest/{phe}.{pop}.chp.chr{chr}.SingleScore.assoc"
 	run:
-		covar = chpCovar({input.phe})
+		covar = chpCovar(input.phe)
 		shell("""
 			rvtest --noweb \
 			--inVCF {input.chr} \
