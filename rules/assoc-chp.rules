@@ -39,7 +39,7 @@ rule chpRvtest:
 		covar = chpCovar(input.phe)
 		shell("""
 			rvtest --noweb \
-			--inVCF {input.chr} \
+			--inVcf {input.chr} \
 			--pheno {input.phe} \
 			--pheno-name {wildcards.phe} \
 			--covar {input.phe} \
