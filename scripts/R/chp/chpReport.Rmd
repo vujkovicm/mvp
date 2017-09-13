@@ -1,0 +1,37 @@
+---
+title: "Chip-based GWAS"
+author: M. Vujkovic
+output: html_document
+---
+
+```{r, eval = F}
+# Insert header here
+following some text
+
+## subheader
+some more text
+dynamic pull up of study set up from config.yaml and pheno files
+```
+
+```{r, eval = T, include = F, echo = T, message = F}
+#args = commandArgs(trailingOnly = T)
+library('yaml')
+library('Cairo')
+library('knitr')
+library('markdown')
+library('rmarkdown')
+
+Sys.time()
+
+data('iris')
+```
+
+```{r, echo = T, fig.width = 7.5, fig.height = 2.5}
+# Manhattan plot
+plot(iris)
+```
+
+```{r, echo = T, fig.width = 3, fig.height = 3}
+# QQ plot
+hist(iris$Sepal.Length)
+```
