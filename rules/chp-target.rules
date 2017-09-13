@@ -1,0 +1,58 @@
+######################################
+# Author: Marijana Vujkovic
+# Date: 08/22/2017
+#
+# target.rules
+######################################
+
+rule make_chpPheno:
+	message:
+		"make | creating rvtest sample files for chip-based {{phe}} GWAS in {{pop}}"
+	input:
+		[ "out/chp/" + phe + "/" + phe + "_phenotype_" + pop + "_cohort.phe" for phe in config['chpPHE'] for pop in config['chpPOP']]
+
+
+rule make_chpMafRvtest:
+	message:
+		"make | MAF-filtering of rvtest output from chip-based {{phe}} GWAS in {{pop}}"
+	input:
+		[ "summary/chp/" + phe + "/" + phe + "." + pop + ".chp.maf" + str(maf) + ".rvtest.out" for maf in config['chpMAF'] for phe in config['chpPHE'] for pop in config['chpPOP'] ]
+
+rule make_chpRvtestManhattan:
+	message:
+		"make | creating manhattan and qq-plot from chip-based {{phe}} GWAS in {{pop}}"
+	input:
+		[ "summary/chp/" + phe + "/" + phe + "." + pop + ".chp.maf" + str(maf) + "." + prog + "." + plot +".png" for prog in ['rvtest'] for plot in ['q', 'm'] for maf in config['chpMAF'] for phe in config['chpPHE'] for pop in config['chpPOP'] ]
+
+rule make_chpRvtestHTML:
+	message:
+		"[pandoc error] creating HTML summary document from chip-based {{phe}} in {{pop}}"
+	input:
+		[ "summary/chp/" + phe + "/" + phe + "." + pop + ".chp.maf" + str(maf) + "." + prog +".html" for prog in ['rvtest'] for maf in config['chpMAF'] for phe in config['chpPHE'] for pop in config['chpPOP'] ]
+
+rule make_chpMetalScript:
+	message:
+		"make | creating metal script to run chip-based {{phe}} meta-analysis"
+	input:
+		[ "scripts/metal/chp/" + phe + ".META.chp.maf" + maf + ".metal" for phe in config['chpPHE'] for maf in config['chpMAF'] ]
+
+rule make_chpMetalRun:
+	message:
+		"make | running metal for chip-based {{phe}} meta-analysis"
+	input:
+		[ "summary/chp/" + phe + "/" + phe + ".META.chp.maf" + maf + ".meta_1.out" for phe in config['chpPHE'] for maf in config['chpMAF'] ]
+
+rule make_chpMetalClean:
+	input:
+		[ "summary/chp/" + phe + "/" + phe + ".META.chp.maf" + maf + ".metal.out" for phe in config['chpPHE'] for maf in config['chpMAF'] ]
+
+rule make_chpMetalManhattan:
+	message:
+		"make | creating manhattan and qq-plot from chip-based {{phe}} meta-analysis"
+	input:
+                [ "summary/chp/" + phe + "/" + phe + ".META.chp.maf" + str(maf) + "." + prog + "." + plot +".png" for prog in ['meta_1'] for plot in ['q', 'm'] for maf in config['chpMAF'] for phe in config['chpPHE'] ]
+
+rule make_chpLocusPrep:
+	input:
+		[ "summary/chp/" + phe + "/" + phe + ".META.chp.maf" + maf + ".locus.ref" for phe in config['chpPHE'] for maf in config['chpMAF'] ]
+
