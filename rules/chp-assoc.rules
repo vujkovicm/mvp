@@ -1,0 +1,159 @@
+######################################
+# Author: Marijana Vujkovic
+# Date: 08/25/2017
+#
+# chp-assoc.rules
+######################################
+
+rule chpPheno:
+	message:
+		"creating rvtest sample files for chip-based {{phe}} GWAS in {{pop}}"
+	input:
+		cube = "pheno/{phe}_datacube.modified.csv",
+		ids  = "pop/MVP001.{pop}.ids",
+		pca  = "pop/MVP001.{pop}.pca"
+	output:
+		"out/chp/{phe}/{phe}_phenotype_{pop}_cohort.phe"
+	shell:
+		"""
+		Rscript scripts/R/chp/chpPheno.R '{input.cube}' '{input.ids}' '{input.pca}' '{output}'
+		"""
+
+# get names as covariates as plain text
+def chpCovar(filename):
+	with open(filename, 'r') as f:
+		str = f.readline()
+	words = str.split()
+	del words[0:5]
+	words.remove(config['chpPheno'][0])
+	# remaining covariates as string
+	return ','.join(words)
+
+rule chpRvtest:
+	message:
+		"running rvtest for chip-based {{phe}} GWAS in {{pop}}"
+	input:
+		phe = "out/chp/{phe}/{phe}_phenotype_{pop}_cohort.phe",
+		chr = "/scratch/scratch2/mvp001/jiehuang/data/mvp/v2.1.chr{chr}.vcf.gz"
+	output:
+		"out/chp/{phe}/{pop}/rvtest/{phe}.{pop}.chp.chr{chr}.SingleScore.assoc"
+	run:
+		covar = chpCovar(input.phe)
+		shell("""
+		rvtest --noweb \
+		--inVcf {input.chr} \
+		--pheno {input.phe} \
+		--pheno-name {wildcards.phe} \
+		--covar {input.phe} \
+		--covar-name {covar} \
+		--freqLower 0.0001 \
+		--single score \
+		--impute drop \
+		--out out/chp/{wildcards.phe}/{wildcards.pop}/rvtest/{wildcards.phe}.{wildcards.pop}.chp.chr{wildcards.chr} 
+		""")
+
+rule chpMrgRvtest:
+	message:
+		"merging rvtest output from chip-based {{phe}} GWAS in {{pop}}"
+	input:
+		expand("out/chp/{phe}/{pop}/rvtest/{phe}.{pop}.chp.chr{chr}.SingleScore.assoc", phe = config['chpPHE'], pop = config['chpPOP'], chr = range(1, 22))
+	output:
+		"summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.rvtest.out"
+	shell:
+		"""
+		awk 'NR>1 && NF==13 && $6>{wildcards.maf} && $6<0.9995 && $13!="NA" {{ print "chr"$1":"$2, $1, $2, $3, $4, $5, $6, $11, $12, $13 }}' {input} >> {output}
+		# inser space seperated header to this file
+		sed -i '1 i\CHRCBP CHR POS REF ALT N_INFORMATIVE AF EFFECT SE PVALUE' {output}
+		"""
+
+rule chpManhattan:
+	message:
+		"creating manhattan and qq-plot from chip-based {{phe}} GWAS in {{pop}}"
+	input:
+		"summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.{prog}.out"
+	output:
+		m = "summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.{prog}.m.png",
+		q = "summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.{prog}.q.png"
+	shell:
+		"""
+		Rscript scripts/R/chp/chpManhattan.R '{input}' '{output.m}' '{output.q}'
+		"""
+
+rule chpHTML:
+	message:
+		"[pandoc error] creating HTML summary document from chip-based {{phe}} in {{pop}}"
+	input:
+		"summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.{prog}.out"
+	output:
+		"summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.{prog}.html"
+	shell:
+		"""
+		Rscript scripts/R/chp/runReport.R '{input}' '{output}'
+		"""
+
+rule chpMetalScript:
+	message:
+		"creating metal script to run chip-based {{phe}} meta-analysis"
+	input:
+                eur = "summary/chp/{phe}/{phe}.EUR.chp.maf{maf}.rvtest.out",
+                amr = "summary/chp/{phe}/{phe}.AMR.chp.maf{maf}.rvtest.out",
+                afr = "summary/chp/{phe}/{phe}.AFR.chp.maf{maf}.rvtest.out"
+	output:
+		"scripts/metal/chp/{phe}.META.chp.maf{maf}.metal"
+	params:
+		"summary/chp/{phe}/{phe}.META.chp.maf{maf}.meta_ .out"
+	shell:
+		"""
+		Rscript scripts/R/chp/chpMetalScript.R '{output}' '{input.eur}' '{input.amr}' '{input.afr}' '{params}'
+		"""
+
+rule chpMetalRun:
+	message:
+		"running metal for chip-based {{phe}} meta-analysis"
+	input:
+		"scripts/metal/chp/{phe}.META.chp.maf{maf}.metal"
+	output:
+		"summary/chp/{phe}/{phe}.META.chp.maf{maf}.meta_1.out"
+	shell:
+		"""
+		metal '{input}'
+		"""
+
+rule chpMetalClean:
+	message:
+		"cleaning up metal output from chip-based {{phe}} meta-analysis"
+	input:
+		"summary/chp/{phe}/{phe}.META.chp.maf{maf}.meta_1.out"
+	output:
+		all = "summary/chp/{phe}/{phe}.META.chp.maf{maf}.metal.out",
+		sig = "summary/chp/{phe}/{phe}.META.chp.maf{maf}.sig.out",
+		tab = "summary/chp/{phe}/{phe}.META.chp.maf{maf}.sig.tab"
+	shell:
+		"""
+		Rscript scripts/R/chp/chpMetalClean.R '{input}' '{output.all}' '{output.sig}' '{output.tab}' 
+		"""
+
+rule chpLocusPrep:
+	message:
+		"preparing output from chip-based {{phe}} meta-analysis for LocusZoom regional plots"
+	input:
+		"summary/chp/{phe}/{phe}.META.chp.maf{maf}.sig.out"
+	output:
+		"summary/chp/{phe}/{phe}.META.chp.maf{maf}.locus.ref"
+	shell:
+		"""
+		Rscript scripts/R/chp/chpLocusPrep.R '{input}' '{output}'
+		"""
+
+rule chpLocusRun:
+	message:
+		"[python 2.7] running LocusZoom for significant SNPs in chip-based {{phe}} meta-analysis"
+	input:
+		ref = "summary/chp/{phe}/{phe}.META.chp.maf{maf}.locus.ref",
+		lz  = "summary/chp/{phe}/{phe}.META.chp.maf{maf}.metal.out"
+	output:
+		"summary/chp/{phe}/locus/{phe}.locus.txt"
+	shell:
+		"""
+		Rscript scripts/R/chp/chpLocusRun.R '{wildcards.phe}' '{wildcards.maf}'
+		"""
