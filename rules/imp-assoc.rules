@@ -1,0 +1,150 @@
+######################################
+# Author: Marijana Vujkovic
+# Date: 08/30/2017
+#
+# assoc-imp.rules
+######################################
+
+# create sample
+rule impPheno:
+	message:
+		"creating rvtest sample files for imputed {wildcards.phe} GWAS in {wildcards.pop}"
+	input:
+		cube = "pheno/{phe}_datacube.modified.csv",
+		ids = "pop/MVP001.{pop}.ids",
+		pca = "pop/MVP001.{pop}.pca"
+	output:
+		"out/imp/{phe}/{phe}.{pop}.phe"
+	shell:
+		"""
+		Rscript scripts/R/imp/impPheno.R '{input.cube}' '{input.ids}' '{input.pca}' '{output}'
+		"""
+
+def impCovar(filename):
+	with open(filename, 'r') as f:
+		str = f.readline()
+	words = str.split()
+	del words[0:5]
+	words.remove(config['impPHE'][0])
+	return ','.join(words)
+
+rule impRvtest:
+	input:
+		phe = "out/imp/{phe}/{phe}.{pop}.phe"
+	output:
+		"out/imp/{phe}/{pop}/rvtest/chr{chr}/{phe}.chr{chr}.{i}.{j}.SingleScore.assoc"
+	run:
+		covar = impCovar(input.phe)
+		shell("""rvtest --noweb --inVcf /data/data2/mvp001/mvp_imputed/1kg.ref_v20170306/chr{wildcards.chr}/chr{wildcards.chr}.{wildcards.i}.{wildcards.j}.dose.vcf.gz --pheno {input.phe} --pheno-name {wildcards.phe}	--covar {input.phe} --covar-name {covar} --freqLower 0.0001 --single score --impute drop --out out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/chr{wildcards.chr}/{wildcards.phe}.chr{wildcards.chr}.{wildcards.i}.{wildcards.j}""")
+
+rule impMrgList:
+	input:
+		"out/imp/{phe}/{pop}/rvtest/chr1/{phe}.chr1.1.01.SingleScore.assoc"
+	output:
+		"out/imp/{phe}/{pop}/rvtest/rvtest_chunks.lst"
+	shell:
+		"""
+		file out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/*/* | sed 's/[:].$//' >> {output}
+		"""
+
+rule impMrgRvtest:
+	input:
+		"out/imp/{phe}/{pop}/rvtest/rvtest_chunks.lst"
+	output:
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.SingleScore.assoc"
+	shell:
+		"""
+		file=$(ls out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/chr1/*.assoc | head -1)
+		echo "filename "$(sed -n '1p' ${{file}}) > {output}
+		awk -F' ' 'FNR > 1 {{if ($9 >= {wildcards.info}) print FILENAME " " $0 }}' out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/*/*.assoc >> {output}
+		"""
+
+rule impRvtestMaf:
+	input:
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.SingleScore.assoc"
+	output:
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.rvtest.out"
+	shell:
+		"""
+		Rscript scripts/R/imp/impRvtestMaf.R '{wildcards.maf}' '{input}' '{output}' 
+		"""
+
+rule impManhattan:
+	message:
+		"creating manhattan and qq-plot from imputed {wildcards.phe} GWAS in {wildcards.pop}"
+	input:
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.rvtest.out"
+	output:
+		m = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.rvtest.m.png",
+		q = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.rvtest.q.png"
+	shell:
+		"""
+		Rscript scripts/R/imp/impManhattan.R '{input}' '{output.m}' '{output.q}'
+		"""
+
+rule impMetalScript:
+	message:
+		"creating metal script to run imputed {wildcards.phe} meta-analysis"
+	input:
+		eur = "summary/imp/{phe}/{phe}.EUR.imp.info{info}.maf{maf}.rvtest.out",
+		amr = "summary/imp/{phe}/{phe}.AMR.imp.info{info}.maf{maf}.rvtest.out",
+		afr = "summary/imp/{phe}/{phe}.AFR.imp.info{info}.maf{maf}.rvtest.out"
+	output:
+		"scripts/metal/imp/{phe}.META.imp.info{info}.maf{maf}.metal"
+	params:
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.meta_ .out"
+	shell:
+		"""
+		Rscript scripts/R/imp/impMetalScript.R '{output}' '{input.eur}' '{input.amr}' '{input.afr}' '{params}'
+		"""
+
+rule impMetalRun:
+	message:
+		"running metal for imputed {wildcards.phe} meta-analysis"
+	input:
+		"scripts/metal/imp/{phe}.META.imp.info{info}.maf{maf}.metal"
+	output:
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.meta_1.out"
+	shell:
+		"""
+		metal '{input}'
+		"""
+
+rule impMetalClean:
+	message:
+		"cleaning up metal output from imputed {wildcards.phe} meta-analysis"
+	input:
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.meta_1.out"
+	output:
+		all = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.metal.out",
+		sig = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.sig.out",
+		tab = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.sig.tab"
+	shell:
+		"""
+		Rscript scripts/R/imp/impMetalClean.R '{input}' '{output.all}' '{output.sig}' '{output.tab}'
+		"""
+
+rule impLocusPrep:
+	message:
+		"preparing output from imputed {wildcards.phe} meta-analysis for LocusZoom regional plots"
+	input:
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.sig.out"
+	output:
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.locus.ref"
+	shell:
+		"""
+		Rscript scripts/R/imp/impLocusPrep.R '{input}' '{output}'
+		"""
+
+rule impLocusRun:
+	message:
+		"[python 2.7] running LocusZoom for significant SNPs in imputed {wildcards.phe} meta-analysis"
+	input:
+		ref = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.locus.ref",
+		lz  = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.metal.out"
+	output:
+		"summary/imp/{phe}/locus/{phe}.locus.txt"
+	shell:
+		"""
+		Rscript scripts/R/imp/impLocusRun.R '{wildcards.phe}' '{wildcards.info}' '{wildcards.maf}'
+		"""
