@@ -5,7 +5,7 @@ Steps:
 	- export PATH="/group/tools/Anaconda/Anaconda3/bin:$PATH"
 	- export LD_LIBRARY_PATH="/group/tools/Anaconda/Anaconda3/lib:$LD_LIBRARY_PATH"
 
-2. download and install git on R04-WM Citrix 65 Desktop (single instance allowed)
+2. download and install git on Citrix Desktop (single instance allowed)
 
 3. clone git snakemake source files to grid
 	- in Citrix Desktop, go to to_genisis folder
