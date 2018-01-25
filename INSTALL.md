@@ -11,12 +11,12 @@ Steps:
 	- in Citrix Desktop, go to to_genisis folder
 	- right-click and select GIT BASH HERE
 	- git clone https://bitbucket.org/snakemake/snakemake.git
-	- in terminal, copy snakemake git from to_genisis/vhaxxxxxxxxx to /snakemake folder
+	- in terminal, copy snakemake git from to_genisis/username to /snakemake folder
 	- go to /snakemake folder
 	- create virtual environment to work around Anaconda3 package install limitation
 	- virtualenv -p python3 .venv
 
-4. download Anaconda packages in to_gensis/vhaxxxxxxxxx folder
+4. download Anaconda packages in to_gensis/username folder
 	- copy required packages to /snakemake/.venv
 	- go to .venv directory: unzip all packages: cat *.tar.bz2 | tar xvfj - -i
 	- from snakemake directory, run: pip install --no-index file:/snakemake
