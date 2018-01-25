@@ -1,6 +1,6 @@
 ######################################
 # Author: Marijana Vujkovic
-# Date: 08/22/2017
+# Date: 12/22/2017
 #
 # imp-target.rules
 ######################################
@@ -9,21 +9,33 @@ rule make_impPheno:
 	input:
 		[ "out/imp/" + phe + "/" + phe + "." + pop + ".phe" for phe in config['impPHE'] for pop in config['impPOP'] ]
 
-rule make_impRvtest:
+rule make_impRvtest_1:
 	input:
-		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".SingleScore.assoc" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(1, 3) for i in range(1, 3) for j in range(1, 3) ]
+		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".log" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(1, 3) for i in range(1, 6) for j in range(1, 11) ]
 
-rule make_impRvtestMrg:
+rule make_impRvtest_2:
+        input:
+                [ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".log" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(3, 6) for i in range(1, 5) for j in range(1, 11) ]
+
+rule make_impRvtest_3:
 	input:
-		[ "summary/imp/" + phe + "/" + phe + "." + pop + ".imp.info" + info + ".SingleScore.assoc" for phe in config['impPHE'] for pop in config['impPOP'] for info in config['impINFO']]
+		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".log" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(6, 13) for i in range(1, 4) for j in range(1, 11) ]
+
+rule make_impRvtest_4:
+	input:
+		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".log" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(13, 18) for i in range(1, 3) for j in range(1, 11) ]
+
+rule make_impRvtest_5:
+	input:
+		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".log" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(18, 23) for i in range(1, 2) for j in range(1, 11) ]
 
 rule make_impRvtestMaf:
 	input:
-		 [ "summary/imp/" + phe + "/" + phe + "." + pop + ".imp.info" + info + ".maf" + maf +".rvtest.assoc" for phe in config['impPHE'] for pop in config['impPOP'] for info in config['impINFO'] for maf in config['impMAF']]
+		 [ "summary/imp/" + phe + "/" + phe + "." + pop + ".imp.maf" + maf + ".wald.out" for phe in config['impPHE'] for pop in config['impPOP'] for info in config['impINFO'] for maf in config['impMAF']]
 
 rule make_impManhattan:
 	input:
-		 [ "summary/imp/" + phe + "/" + phe + "." + pop + ".imp.info" + info + ".maf" + maf +".rvtest.m.png" for phe in config['impPHE'] for pop in config['impPOP'] for info in config['impINFO'] for maf in config['impMAF'] ]
+		 [ "summary/imp/" + phe + "/" + phe + "." + pop + ".imp.info" + info + ".maf" + maf + ".wald.m.png" for phe in config['impPHE'] for pop in config['impPOP'] for info in config['impINFO'] for maf in config['impMAF'] ]
 
 rule make_impMetalScript:
 	input:
@@ -35,11 +47,23 @@ rule make_impMetalRun:
 
 rule make_impMetalClean:
 	input:
-		  [ "summary/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf +".metal.out" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
+		  [ "summary/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf + ".meta_1.all" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
+
+rule make_impEURclean:
+	input:
+		 [ "summary/imp/" + phe + "/" + phe + ".EUR.imp.info" + info + ".maf" + maf + ".score.all" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
+
+rule make_impMetalManhattan:
+	input:
+		["summary/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf + ".meta_1.m.png" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
 
 rule make_impLocusPrep:
 	input:
-		  [ "summary/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf +".locus.ref" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
+		  [ "summary/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf + ".meta_1.locus.ref" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
+
+rule make_impEURLocusPrep:
+	input:
+		[ "summary/imp/" + phe + "/" + phe + ".EUR.imp.info" + info + ".maf" + maf + ".wald.locus.ref" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
 
 rule make_impLocusRun:
 	input:
