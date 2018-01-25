@@ -1,11 +1,6 @@
-snakemake install documentation
+### snakemake install in a virtual environment
 
-problem 1: 	no internet access on  grid 
-problem 2: 	no rights to install Anaconda packages in /group/tools/Anaconda/Anaconda3
-
-workaround:	installation from source in a virtual environment
-
-steps:
+Steps:
 1. In home directory .bashrc put Anaconda3 as default:
         - export PATH="/group/tools/Anaconda/Anaconda3/bin:$PATH"
         - export LD_LIBRARY_PATH="/group/tools/Anaconda/Anaconda3/lib:$LD_LIBRARY_PATH"
