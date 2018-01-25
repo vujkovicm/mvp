@@ -142,5 +142,5 @@ rule impLocusRun:
 		"summary/imp/{phe}/locus/{phe}.{pop}.locus.txt"
 	shell:
 		"""
-		Rscript scripts/R/imp/impLocusRun.R '{wildcards.phe}' 'wildcards.pop' '{wildcards.info}' '{wildcards.maf}'
+		Rscript scripts/R/imp/impLocusRun.R '{wildcards.phe}' '{wildcards.pop}' '{wildcards.info}' '{wildcards.maf}'
 		"""
