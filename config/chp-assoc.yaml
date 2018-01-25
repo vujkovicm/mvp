@@ -1,0 +1,24 @@
+chpPHE:
+ - ALTprox
+ - NAFLD
+ - NAFLDadj
+ - ALTpeak
+
+# FIRST ELEMENT SHOULD BE OUTCOME
+chpCOV:
+ NAFLD:  [ NAFLD, B]
+ AGE:    [ age, C ]
+ SEX:    [ FEMALE, D ]
+ PC1:    [ PC1, C ]
+ PC2:    [ PC2, C ]
+ PC3:    [ PC3, C ]
+ PC4:    [ PC4, C ]
+ PC5:    [ PC5, C ]
+
+chpMAF:
+ - "0.01"
+
+chpPOP:
+ - EUR
+ - AFR
+ - AMR
