@@ -2,7 +2,7 @@
 
 Steps:
 1. In home directory .bashrc put Anaconda3 as default:
-        - export PATH="/group/tools/Anaconda/Anaconda3/bin:$PATH"
+	- export PATH="/group/tools/Anaconda/Anaconda3/bin:$PATH"
 	- export LD_LIBRARY_PATH="/group/tools/Anaconda/Anaconda3/lib:$LD_LIBRARY_PATH"
 
 2. download and install git on R04-WM Citrix 65 Desktop (single instance allowed)
