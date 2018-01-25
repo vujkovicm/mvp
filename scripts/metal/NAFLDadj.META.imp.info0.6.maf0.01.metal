@@ -1,0 +1,24 @@
+SCHEME STDERR
+CUSTOMVARIABLE N_INFORMATIVE
+LABEL N_INFORMATIVE AS N_INFORMATIVE
+
+MARKER CHRCBP
+FREQ AF
+ALLELE REF ALT
+EFFECT EFFECT
+PVALUE PVALUE
+WEIGHTLABEL N_INFORMATIVE
+STDERR SE
+
+AVERAGEFREQ ON
+MINMAXFREQ ON
+COLUMNCOUNTING STRICT
+GENOMICCONTROL ON
+SEPERATOR WHITESPACE
+PROCESS /group/research/mvp001/snakemake/summary/imp/NAFLDadj/NAFLDadj.EUR.imp.info0.6.maf0.01.wald.out
+PROCESS /group/research/mvp001/snakemake/summary/imp/NAFLDadj/NAFLDadj.AMR.imp.info0.6.maf0.01.wald.out
+PROCESS /group/research/mvp001/snakemake/summary/imp/NAFLDadj/NAFLDadj.AFR.imp.info0.6.maf0.01.wald.out
+
+OUTFILE /group/research/mvp001/snakemake/summary/imp/NAFLDadj/NAFLDadj.META.imp.info0.6.maf0.01.meta_ .out
+ANALYZE HETEROGENEITY
+QUIT
