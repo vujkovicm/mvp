@@ -1,0 +1,29 @@
+impPHE:
+ - PHECODE
+
+impCOV:
+ PHECODE: [ PHECODE, B ]
+ AGE: [ age, C ]
+ SEX: [ female, D ]
+ PC1: [ HARE1, C ]
+ PC2: [ HARE2, C]
+ PC3: [ HARE3, C]
+ PC4: [ HARE4, C]
+ PC5: [ HARE5, C]
+ PC6: [ HARE6, C ]
+ PC7: [ HARE7, C]
+ PC8: [ HARE8, C]
+ PC9: [ HARE9, C]
+ PC10: [ HARE10, C]
+
+impMAF:
+ - "0.01"
+
+impPOP:
+ - AMR
+ - EUR
+ - AFR
+
+impINFO:
+ - "0.6"
+
