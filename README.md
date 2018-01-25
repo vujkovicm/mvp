@@ -1,3 +1,3 @@
-# MVP
+### MVP
 
-## Marijana's snakemake pipeline for GWAS analyses
+Marijana's snakemake pipeline for GWAS analyses
