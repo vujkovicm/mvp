@@ -2,27 +2,25 @@ rm(list=ls())
 args = commandArgs(trailingOnly = TRUE)
 
 # test
-# args = c("pheno/T2D_datacube.modified.csv", "pop/MVP001.AFR.ids", "pop/MVP001.AFR.pca")
+# args = c("pheno/T2D_datacube.modified.csv", "pop/MVP001.AFR.pca")
 
 library('yaml')
-library('data.table')
 
 yml = yaml.load_file('config/imp-assoc.yaml')
 
 ### PHENO + PCA 
-cube  	= read.table(args[1], header = T, as.is = T, sep = "|")
-pop 	= read.table(args[2], header = T, as.is = T)
-pca 	= read.table(args[3], header = T, stringsAsFactors = F, sep = " ")
+cube  	= read.table(args[1], header = T, as.is = T, sep = " ")
+pca 	= read.table(args[2], header = T, stringsAsFactors = F, sep = " ")
 
 ### MERGE  
-phe 	 = merge(pop, cube, by.x = "fid", by.y = "mvp001_id", all.x = T)
-phe = data.table(phe)
-pca = data.table(pca)
-keep = union(names(phe), names(pca))
-phe = data.frame(pca[phe, mget(keep), on = "fid", nomatch = NA])
+phe 	 = merge(cube, pca, by.x = "mvp001_id", by.y = "mvp001_id", all.x = T)
 
 ### PED
-ped 	= phe[, c("fid", "iid", "fatid", "matid", "sex0")]
+ped 	= phe[, c("mvp001_id", "mvp001_id", "mvp001_id", "mvp001_id", "female")]
+names(ped) = c("fid", "iid", "fatid", "matid", "sex_core")
+ped$fatid = 0
+ped$matid = 0
+ped$sex_core = 0
 for(i in 1:length(yml$impCOV))
 {
 	ped = cbind.data.frame(ped, phe[, yml$impCOV[[i]][[1]][1]])
@@ -60,4 +58,4 @@ for(i in 1:length(yml$impCOV))
 ped <- unique(ped)
 
 # export
-write.table(ped, args[4], sep = " ", col.names = T, row.names = F, quote = F)
+write.table(ped, args[3], sep = " ", col.names = T, row.names = F, quote = F)
