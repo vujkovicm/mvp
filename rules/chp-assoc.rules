@@ -2,36 +2,37 @@
 # Author: Marijana Vujkovic
 # Date: 08/25/2017
 #
-# chp-assoc.rules
+# assoc-chp.rules
 ######################################
+
 
 rule chpPheno:
 	message:
-		"creating rvtest sample files for chip-based {{phe}} GWAS in {{pop}}"
+		"creating rvtest sample files for chip-based {wildcards.phe} GWAS in {wildcards.pop}"
 	input:
 		cube = "pheno/{phe}_datacube.modified.csv",
-		ids  = "pop/MVP001.{pop}.ids",
 		pca  = "pop/MVP001.{pop}.pca"
 	output:
 		"out/chp/{phe}/{phe}_phenotype_{pop}_cohort.phe"
 	shell:
 		"""
-		Rscript scripts/R/chp/chpPheno.R '{input.cube}' '{input.ids}' '{input.pca}' '{output}'
+		Rscript scripts/R/chp/chpPheno.R '{input.cube}' '{input.pca}' '{output}'
 		"""
 
-# get names as covariates as plain text
+# get names as covariates from the phenotype file as plain text
+# in impCHOV the first variable should be the phenotype
 def chpCovar(filename):
 	with open(filename, 'r') as f:
 		str = f.readline()
 	words = str.split()
-	del words[0:5]
-	words.remove(config['chpPheno'][0])
+	del words[0:6]
+	# words.remove(config['chpCOV'][0])
 	# remaining covariates as string
 	return ','.join(words)
 
 rule chpRvtest:
 	message:
-		"running rvtest for chip-based {{phe}} GWAS in {{pop}}"
+		"running rvtest for chip-based {wildcards.phe} GWAS in {wildcards.pop}"
 	input:
 		phe = "out/chp/{phe}/{phe}_phenotype_{pop}_cohort.phe",
 		chr = "/scratch/scratch2/mvp001/jiehuang/data/mvp/v2.1.chr{chr}.vcf.gz"
@@ -47,16 +48,16 @@ rule chpRvtest:
 		--covar {input.phe} \
 		--covar-name {covar} \
 		--freqLower 0.0001 \
-		--single score \
+		--single score,wald \
 		--impute drop \
 		--out out/chp/{wildcards.phe}/{wildcards.pop}/rvtest/{wildcards.phe}.{wildcards.pop}.chp.chr{wildcards.chr} 
 		""")
 
 rule chpMrgRvtest:
 	message:
-		"merging rvtest output from chip-based {{phe}} GWAS in {{pop}}"
+		"merging rvtest output from chip-based {wildcards.phe} GWAS in {wildcards.pop}"
 	input:
-		expand("out/chp/{phe}/{pop}/rvtest/{phe}.{pop}.chp.chr{chr}.SingleScore.assoc", phe = config['chpPHE'], pop = config['chpPOP'], chr = range(1, 22))
+		expand("out/chp/{phe}/{pop}/rvtest/{phe}.{pop}.chp.chr{chr}.SingleScore.assoc", phe = config['chpPHE'], pop = config['chpPOP'], chr = range(1, 23))
 	output:
 		"summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.rvtest.out"
 	shell:
@@ -68,7 +69,7 @@ rule chpMrgRvtest:
 
 rule chpManhattan:
 	message:
-		"creating manhattan and qq-plot from chip-based {{phe}} GWAS in {{pop}}"
+		"creating manhattan and qq-plot from chip-based {wildcards.phe} GWAS in {wildcards.pop}"
 	input:
 		"summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.{prog}.out"
 	output:
@@ -81,7 +82,7 @@ rule chpManhattan:
 
 rule chpHTML:
 	message:
-		"[pandoc error] creating HTML summary document from chip-based {{phe}} in {{pop}}"
+		"[pandoc error] creating HTML summary document from chip-based {wildcards.phe} in {wildcards.pop}"
 	input:
 		"summary/chp/{phe}/{phe}.{pop}.chp.maf{maf}.{prog}.out"
 	output:
@@ -93,7 +94,7 @@ rule chpHTML:
 
 rule chpMetalScript:
 	message:
-		"creating metal script to run chip-based {{phe}} meta-analysis"
+		"creating metal script to run chip-based {wildcards.phe} meta-analysis"
 	input:
                 eur = "summary/chp/{phe}/{phe}.EUR.chp.maf{maf}.rvtest.out",
                 amr = "summary/chp/{phe}/{phe}.AMR.chp.maf{maf}.rvtest.out",
@@ -109,7 +110,7 @@ rule chpMetalScript:
 
 rule chpMetalRun:
 	message:
-		"running metal for chip-based {{phe}} meta-analysis"
+		"running metal for chip-based {wildcards.phe} meta-analysis"
 	input:
 		"scripts/metal/chp/{phe}.META.chp.maf{maf}.metal"
 	output:
@@ -121,7 +122,7 @@ rule chpMetalRun:
 
 rule chpMetalClean:
 	message:
-		"cleaning up metal output from chip-based {{phe}} meta-analysis"
+		"cleaning up metal output from chip-based {wildcards.phe} meta-analysis"
 	input:
 		"summary/chp/{phe}/{phe}.META.chp.maf{maf}.meta_1.out"
 	output:
@@ -135,7 +136,7 @@ rule chpMetalClean:
 
 rule chpLocusPrep:
 	message:
-		"preparing output from chip-based {{phe}} meta-analysis for LocusZoom regional plots"
+		"preparing output from chip-based {wildcards.phe} meta-analysis for LocusZoom regional plots"
 	input:
 		"summary/chp/{phe}/{phe}.META.chp.maf{maf}.sig.out"
 	output:
@@ -147,7 +148,7 @@ rule chpLocusPrep:
 
 rule chpLocusRun:
 	message:
-		"[python 2.7] running LocusZoom for significant SNPs in chip-based {{phe}} meta-analysis"
+		"[python 2.7] running LocusZoom for significant SNPs in chip-based {wildcards.phe} meta-analysis"
 	input:
 		ref = "summary/chp/{phe}/{phe}.META.chp.maf{maf}.locus.ref",
 		lz  = "summary/chp/{phe}/{phe}.META.chp.maf{maf}.metal.out"
