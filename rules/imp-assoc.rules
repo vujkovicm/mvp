@@ -1,6 +1,6 @@
 ######################################
 # Author: Marijana Vujkovic
-# Date: 08/30/2017
+# Date: 01/15/2018
 #
 # assoc-imp.rules
 ######################################
@@ -8,16 +8,15 @@
 # create sample
 rule impPheno:
 	message:
-		"creating rvtest sample files for imputed {wildcards.phe} GWAS in {wildcards.pop}"
+		"creating rvtest sample files for imputed {wildcards.phe} GWAS in {wildcards.pop} population"
 	input:
 		cube = "pheno/{phe}_datacube.modified.csv",
-		ids = "pop/MVP001.{pop}.ids",
 		pca = "pop/MVP001.{pop}.pca"
 	output:
 		"out/imp/{phe}/{phe}.{pop}.phe"
 	shell:
 		"""
-		Rscript scripts/R/imp/impPheno.R '{input.cube}' '{input.ids}' '{input.pca}' '{output}'
+		Rscript scripts/R/imp/impPheno.R '{input.cube}' '{input.pca}' '{output}'
 		"""
 
 def impCovar(filename):
@@ -29,17 +28,21 @@ def impCovar(filename):
 	return ','.join(words)
 
 rule impRvtest:
+	message:
+		"running imputed {wildcards.phe} GWAS in rvtest in {wildcards.pop} population [chr {wildcards.chr}; i {wildcards.i}; j {wildcards.j}]"
 	input:
 		phe = "out/imp/{phe}/{phe}.{pop}.phe"
 	output:
-		"out/imp/{phe}/{pop}/rvtest/chr{chr}/{phe}.chr{chr}.{i}.{j}.SingleScore.assoc"
+		"out/imp/{phe}/{pop}/rvtest/chr{chr}/{phe}.chr{chr}.{i}.{j}.log"
 	run:
 		covar = impCovar(input.phe)
-		shell("""rvtest --noweb --inVcf /data/data2/mvp001/mvp_imputed/1kg.ref_v20170306/chr{wildcards.chr}/chr{wildcards.chr}.{wildcards.i}.{wildcards.j}.dose.vcf.gz --pheno {input.phe} --pheno-name {wildcards.phe}	--covar {input.phe} --covar-name {covar} --freqLower 0.0001 --single score --impute drop --out out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/chr{wildcards.chr}/{wildcards.phe}.chr{wildcards.chr}.{wildcards.i}.{wildcards.j}""")
+		shell("""rvtest --noweb --inVcf /data/data1/mvp001/mvp_imputed/1kg.ref_v20170306/chr{wildcards.chr}/chr{wildcards.chr}.{wildcards.i}.{wildcards.j}.dose.vcf.gz --pheno {input.phe} --pheno-name {wildcards.phe}	--covar {input.phe} --covar-name {covar} --single score --impute drop --dosage DS --out out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/chr{wildcards.chr}/{wildcards.phe}.chr{wildcards.chr}.{wildcards.i}.{wildcards.j}""")
 
 rule impMrgList:
+	message:
+		"creating list of rvtest-chunks from imputed {wildcards.phe} GWAS in {wildcards.pop} population"
 	input:
-		"out/imp/{phe}/{pop}/rvtest/chr1/{phe}.chr1.1.01.SingleScore.assoc"
+		"out/imp/{phe}/{pop}/rvtest/chr1/{phe}.chr1.1.01.SingleWald.assoc"
 	output:
 		"out/imp/{phe}/{pop}/rvtest/rvtest_chunks.lst"
 	shell:
@@ -48,47 +51,40 @@ rule impMrgList:
 		"""
 
 rule impMrgRvtest:
+	message:
+		"merging rvtest chunks with MAF > {wildcards.maf} from imputed {wildcards.phe} GWAS in {wildcards.pop} population"
 	input:
 		"out/imp/{phe}/{pop}/rvtest/rvtest_chunks.lst"
 	output:
-		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.SingleScore.assoc"
+		"summary/imp/{phe}/{phe}.{pop}.imp.maf{maf}.wald.out"
 	shell:
 		"""
-		file=$(ls out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/chr1/*.assoc | head -1)
-		echo "filename "$(sed -n '1p' ${{file}}) > {output}
-		awk -F' ' 'FNR > 1 {{if ($9 >= {wildcards.info}) print FILENAME " " $0 }}' out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/*/*.assoc >> {output}
-		"""
-
-rule impRvtestMaf:
-	input:
-		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.SingleScore.assoc"
-	output:
-		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.rvtest.out"
-	shell:
-		"""
-		Rscript scripts/R/imp/impRvtestMaf.R '{wildcards.maf}' '{input}' '{output}' 
+		awk -F' ' 'FNR > 1 {{if ($6 >= {wildcards.maf} && $6 <= (1-{wildcards.maf})) print "chr"$1":"$2,$1,$2,$3,$4,$5,$6,$11,$12,$13}}' out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/*/*.SingleScore.assoc > {output}
+                # inser space seperated header to this file
+                sed -i '1 i\CHRCBP CHR POS NEA EA N_INFORMATIVE EAF EFFECT SE PVALUE' {output}
 		"""
 
 rule impManhattan:
 	message:
-		"creating manhattan and qq-plot from imputed {wildcards.phe} GWAS in {wildcards.pop}"
+		"creating manhattan and qq-plot from imputed {wildcards.phe} GWAS in {wildcards.pop} population"
 	input:
-		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.rvtest.out"
+		"summary/imp/{phe}/{phe}.{pop}.imp.maf{maf}.wald.out"
 	output:
-		m = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.rvtest.m.png",
-		q = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.rvtest.q.png"
+		m = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.m.png",
+		q = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.q.png",
+		o = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.out"
 	shell:
 		"""
-		Rscript scripts/R/imp/impManhattan.R '{input}' '{output.m}' '{output.q}'
+		Rscript scripts/R/imp/impManhattan.R '{input}' '{output.m}' '{output.q}' '{wildcards.info}' '{output.o}'
 		"""
 
 rule impMetalScript:
 	message:
 		"creating metal script to run imputed {wildcards.phe} meta-analysis"
 	input:
-		eur = "summary/imp/{phe}/{phe}.EUR.imp.info{info}.maf{maf}.rvtest.out",
-		amr = "summary/imp/{phe}/{phe}.AMR.imp.info{info}.maf{maf}.rvtest.out",
-		afr = "summary/imp/{phe}/{phe}.AFR.imp.info{info}.maf{maf}.rvtest.out"
+		eur = "summary/imp/{phe}/{phe}.EUR.imp.info{info}.maf{maf}.wald.out",
+		amr = "summary/imp/{phe}/{phe}.AMR.imp.info{info}.maf{maf}.wald.out",
+		afr = "summary/imp/{phe}/{phe}.AFR.imp.info{info}.maf{maf}.wald.out"
 	output:
 		"scripts/metal/imp/{phe}.META.imp.info{info}.maf{maf}.metal"
 	params:
@@ -112,13 +108,13 @@ rule impMetalRun:
 
 rule impMetalClean:
 	message:
-		"cleaning up metal output from imputed {wildcards.phe} meta-analysis"
+		"cleaning up metal output from imputed {wildcards.phe} in {wildcards.pop} from {wildcards.program} analysis"
 	input:
-		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.meta_1.out"
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.out"
 	output:
-		all = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.metal.out",
-		sig = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.sig.out",
-		tab = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.sig.tab"
+		all = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.all",
+		sig = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.sig.out",
+		tab = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.sig.tab"
 	shell:
 		"""
 		Rscript scripts/R/imp/impMetalClean.R '{input}' '{output.all}' '{output.sig}' '{output.tab}'
@@ -126,11 +122,11 @@ rule impMetalClean:
 
 rule impLocusPrep:
 	message:
-		"preparing output from imputed {wildcards.phe} meta-analysis for LocusZoom regional plots"
+		"preparing output from imputed {wildcards.phe} {wildcards.pop} meta-analysis for LocusZoom regional plots"
 	input:
-		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.sig.out"
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.sig.out"
 	output:
-		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.locus.ref"
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.locus.ref"
 	shell:
 		"""
 		Rscript scripts/R/imp/impLocusPrep.R '{input}' '{output}'
@@ -140,11 +136,11 @@ rule impLocusRun:
 	message:
 		"[python 2.7] running LocusZoom for significant SNPs in imputed {wildcards.phe} meta-analysis"
 	input:
-		ref = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.locus.ref",
-		lz  = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.metal.out"
+		ref = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.locus.ref",
+		lz  = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.out"
 	output:
-		"summary/imp/{phe}/locus/{phe}.locus.txt"
+		"summary/imp/{phe}/locus/{phe}.{pop}.locus.txt"
 	shell:
 		"""
-		Rscript scripts/R/imp/impLocusRun.R '{wildcards.phe}' '{wildcards.info}' '{wildcards.maf}'
+		Rscript scripts/R/imp/impLocusRun.R '{wildcards.phe}' 'wildcards.pop' '{wildcards.info}' '{wildcards.maf}'
 		"""
