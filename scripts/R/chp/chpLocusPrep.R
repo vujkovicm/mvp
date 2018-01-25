@@ -36,4 +36,3 @@ for (j in 1:1)
   comb    <- comb[!duplicated(comb), ]
   write.table(comb, file = file.out, col.names = T, row.names = F, quote = F, sep = "\t")
 } ### iBMI
-
