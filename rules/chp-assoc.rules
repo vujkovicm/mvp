@@ -2,9 +2,8 @@
 # Author: Marijana Vujkovic
 # Date: 08/25/2017
 #
-# assoc-chp.rules
+# chp-assoc.rules
 ######################################
-
 
 rule chpPheno:
 	message:
@@ -20,7 +19,7 @@ rule chpPheno:
 		"""
 
 # get names as covariates from the phenotype file as plain text
-# in impCHOV the first variable should be the phenotype
+# in impCOV the first variable should be the phenotype
 def chpCovar(filename):
 	with open(filename, 'r') as f:
 		str = f.readline()
@@ -156,5 +155,5 @@ rule chpLocusRun:
 		"summary/chp/{phe}/locus/{phe}.locus.txt"
 	shell:
 		"""
-		Rscript scripts/R/chp/chpLocusRun.R '{wildcards.phe}' '{wildcards.maf}'
+		Rscript scripts/R/chp/chpLocusRun.R '{wildcards.phe}' '{wildcards.pop}' '{wildcards.info}' '{wildcards.maf}'
 		"""
