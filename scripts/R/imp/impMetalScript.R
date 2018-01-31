@@ -1,5 +1,5 @@
 args = commandArgs(trailingOnly = TRUE)
-dir  = "/group/research/mvp001/snakemake/"
+dir  = "/snakemake/"
 
 # create metal script file
 sink(file = args[1], append = T)
