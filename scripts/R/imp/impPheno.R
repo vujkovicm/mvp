@@ -1,4 +1,4 @@
-rm(list=ls())
+rm(list = ls())
 args = commandArgs(trailingOnly = TRUE)
 
 # test
@@ -21,33 +21,24 @@ names(ped) = c("fid", "iid", "fatid", "matid", "sex_core")
 ped$fatid = 0
 ped$matid = 0
 ped$sex_core = 0
-for(i in 1:length(yml$impCOV))
-{
+for(i in 1:length(yml$impCOV)) {
 	ped = cbind.data.frame(ped, phe[, yml$impCOV[[i]][[1]][1]])
 	colnames(ped)[i + 5] = names(yml$impCOV)[i]
-	# ped[, i + 5] = 0
-	# now fill out a little better 
-	if(length(yml$impCOV[[i]]) == 3)
-	{
+	if(length(yml$impCOV[[i]]) == 3) {
 		# category to numeric
-		if(yml$impCOV[[i]][2] %in% c('B', 'D'))
-		{
+		if(yml$impCOV[[i]][2] %in% c('B', 'D')) {
 			tmp <- ped[, i + 5]
-                        tmp <- ifelse(ped[,i + 5]  == yml$impCOV[[i]][3], '1', ifelse(ped[,i + 5] == "", NA, '2'))
-                        ped[,i + 5] <- tmp
+                        tmp <- ifelse(ped[, i + 5]  == yml$impCOV[[i]][3], '1', ifelse(ped[, i + 5] == "", NA, '2'))
+                        ped[, i + 5] <- tmp
 		}
-		else if(yml$impCOV[[i]][2] %in% c('P', 'C'))
-                {
-                        if(yml$impCOV[[i]][3] == 'int')
-                        {
+		else if(yml$impCOV[[i]][2] %in% c('P', 'C')) {
+                        if(yml$impCOV[[i]][3] == 'int') {
                                 ped[, i + 5] <- ifelse(is.na(as.numeric(ped[, i + 5])), NA, qnorm((rank(as.numeric(ped[, i + 5])) - 3/8) / (nrow(ped) + 1/4)))
                         }
-                        else if (yml$impCOV[[i]][3] == 'log')
-                        {
+                        else if (yml$impCOV[[i]][3] == 'log') {
                                 ped[, i + 5] <- log(as.numeric(ped[, i + 5]) + 1)
                         }
-                        else if (yml$impCOV[[i]][3] == 'sqr')
-                        {
+                        else if (yml$impCOV[[i]][3] == 'sqr') {
                                 ped[, i + 5] <- (as.numeric(ped[, i + 5]))^2
                       }
 		}
