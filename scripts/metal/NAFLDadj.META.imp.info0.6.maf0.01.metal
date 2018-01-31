@@ -15,10 +15,10 @@ MINMAXFREQ ON
 COLUMNCOUNTING STRICT
 GENOMICCONTROL ON
 SEPERATOR WHITESPACE
-PROCESS /group/research/mvp001/snakemake/summary/imp/NAFLDadj/NAFLDadj.EUR.imp.info0.6.maf0.01.wald.out
-PROCESS /group/research/mvp001/snakemake/summary/imp/NAFLDadj/NAFLDadj.AMR.imp.info0.6.maf0.01.wald.out
-PROCESS /group/research/mvp001/snakemake/summary/imp/NAFLDadj/NAFLDadj.AFR.imp.info0.6.maf0.01.wald.out
+PROCESS summary/imp/NAFLDadj/NAFLDadj.EUR.imp.info0.6.maf0.01.wald.out
+PROCESS summary/imp/NAFLDadj/NAFLDadj.AMR.imp.info0.6.maf0.01.wald.out
+PROCESS summary/imp/NAFLDadj/NAFLDadj.AFR.imp.info0.6.maf0.01.wald.out
 
-OUTFILE /group/research/mvp001/snakemake/summary/imp/NAFLDadj/NAFLDadj.META.imp.info0.6.maf0.01.meta_ .out
+OUTFILE summary/imp/NAFLDadj/NAFLDadj.META.imp.info0.6.maf0.01.meta_ .out
 ANALYZE HETEROGENEITY
 QUIT
