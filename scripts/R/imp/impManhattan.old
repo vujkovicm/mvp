@@ -1,6 +1,5 @@
 rm(list=ls())
 args = commandArgs(trailingOnly = TRUE)
-# args = c("summary/chp/NAFLD/NAFLD.AMR.chp.maf0.01.rvtest.out", "summary/chp/NAFLD/NAFLD.AMR.chp.maf0.01.m.png", "summary/chp/NAFLD/NAFLD.AMR.chp.maf0.01.q.png")
 
 substrRight = function(x, n){
  	substr(x, nchar(x) - n + 1, nchar(x))
