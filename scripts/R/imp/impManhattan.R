@@ -2,11 +2,6 @@ rm(list=ls())
 
 args = (commandArgs(TRUE))
 
-# test
-# args = c("summary/imp/NAFLDadj/NAFLDadj.EUR.imp.maf0.01.wald.out", "summary/imp/NAFLDadj/NAFLDadj.EUR.imp.info0.6.maf0.01.m.png", "summary/imp/NAFLDadj/NAFLDadj.EUR.imp.info0.6.maf0.01.q.png", "0.6", "summary/imp/NAFLDadj/NAFLDadj.EUR.imp.info0.6.maf0.01.wald.out")
-# args = c("summary/imp/NAFLDadj/NAFLDadj.AFR.imp.maf0.01.score.out", "summary/imp/NAFLDadj/NAFLDadj.AFR.imp.info0.6.maf0.01.m.png", "summary/imp/NAFLDadj/NAFLDadj.AFR.imp.info0.6.maf0.01.q.png", "0.6", "summary/imp/NAFLDadj/NAFLDadj.AFR.imp.info0.6.maf0.01.m.png")
-# args = c("summary/imp/NAFLDadj/NAFLDadj.AMR.imp.maf0.01.wald.out", "summary/imp/NAFLDadj/NAFLDadj.AMR.imp.info0.6.maf0.01.m.png", "summary/imp/NAFLDadj/NAFLDadj.AMR.imp.info0.6.maf0.01.q.png", "0.6", "summary/imp/NAFLDadj/NAFLDadj.AMR.imp.info0.6.maf0.01.wald.out")
-
 info = read.table(paste0("/group/research/mvp001/snakemake/info/imputed.", args[4], ".info"), T, stringsAsFactors = F)
 info$SNP = paste0("chr", info$SNP)
 info = unlist(info)
