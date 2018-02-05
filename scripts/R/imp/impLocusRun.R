@@ -8,11 +8,8 @@ args = commandArgs(trailingOnly = TRUE)
 
 out_fold_path	<- paste0("summary/imp/", args[1], "/regional")
 OE_fold_path	<- paste0("summary/imp/", args[1], "/OE")
-
 in_file		<- paste0("summary/imp/", args[1], "/", args[1], ".", args[2], ".imp.info", args[3], ".maf", args[4], ".wald.locus.ref")
-
 d <- read.table(in_file, header = T, sep = "\t", stringsAsFactors = F)
-
 lz_input_path	<- paste0("summary/imp/", args[1], "/", args[1], ".", args[2], ".imp.info", args[3], ".maf", args[4], ".wald.out") 
 
 for (iSNP in 1:nrow(d)) {
@@ -20,7 +17,6 @@ for (iSNP in 1:nrow(d)) {
 	SNP	<- gsub(":", "_", refsnp, fixed = T)
 	CHR	<- d$chr[iSNP]
 	POS	<- d$pos[iSNP]
-
 		### content of the locuszoom script
 	prefix_name	<- paste0(out_fold_path, "/", args[1], "_", args[2])
 	job_name	<- "separate"
