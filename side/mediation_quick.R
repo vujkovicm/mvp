@@ -29,7 +29,7 @@ table(df$pad)
 #      0      1
 # 199258  26102
 
-# mediation analysis
+# mediation analysis (product method)
 # M1: E[pad, E=snp, C=cov] = β0 + β1 e + β2 c
 # M2: E[pad, E=snp, M=t2d, C=cov] = θ0 + θ1 e + θ2 m + θ3 c
 #
@@ -78,8 +78,7 @@ m2 = glm(pad ~ rs7903146 + t2d + age + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 +
 # PC10         4.929e+00  3.904e+00   1.262   0.2068    
 # ---
 
-
-# Mediation Analysis (Product Method)
+# Results
 # Direct effect of exposure (snp) on outcome (pad) 
 # θ1 
 0.001485
