@@ -79,11 +79,11 @@ m2 = glm(pad ~ rs7903146 + t2d + age + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 +
 # ---
 
 # Results
-# Direct effect of exposure (snp) on outcome (pad) 
+# Direct effect of exposure (rs7903146) on outcome (pad) 
 # θ1 
 0.001485
 
-# Indirect effect of exposure (snp) on outcome (pad) through mediator (t2d) 
+# Indirect effect of exposure (rs7903146) on outcome (pad) through mediator (t2d) 
 # β1 * θ2 
 # 0.04538 * 0.990157 
 0.04493
