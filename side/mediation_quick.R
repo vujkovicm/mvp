@@ -88,6 +88,6 @@ m2 = glm(pad ~ rs7903146 + t2d + age + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 +
 # 0.04538 * 0.990157 
 0.04493
 
-# Conclusion: 
+# Conclusion
 # Effect of rs7903146 on PAD is for 99% (0.0449/0.0454) mediated (explained) trough it's effect on T2D.
 # Will have to do a formal mediation analysis to come up with SE, CI, and P.
