@@ -30,8 +30,8 @@ table(df$pad)
 # 199258  26102
 
 # mediation analysis
-# M1: E[pad, E=snp, C=asl] = β0 + β1 e + β2 c
-# M2: E[pad, E=snp, M=t2d, C=asl] = θ0 + θ1 e + θ2 m + θ3 c
+# M1: E[pad, E=snp, C=cov] = β0 + β1 e + β2 c
+# M2: E[pad, E=snp, M=t2d, C=cov] = θ0 + θ1 e + θ2 m + θ3 c
 #
 # Direct effect of exposure (snp) on outcome (pad) = θ1
 # Indirect effect of exposure (snp) on outcome (pad) through mediator (t2d) = β1 * θ2
