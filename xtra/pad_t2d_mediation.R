@@ -33,8 +33,9 @@ table(df$pad)
 # M1: E[pad, E=snp, C=cov] = β0 + β1 e + β2 c
 # M2: E[pad, E=snp, M=t2d, C=cov] = θ0 + θ1 e + θ2 m + θ3 c
 #
-# Direct effect of exposure (snp) on outcome (pad) = θ1
-# Indirect effect of exposure (snp) on outcome (pad) through mediator (t2d) = β1 * θ2
+# β1      = Total effect of exposure (snp) on outcome (pad)
+# θ1      = Direct effect of exposure (snp) on outcome (pad)
+# β1 * θ2 = Indirect effect of exposure (snp) on outcome (pad) through mediator (t2d)
 
 m1 = glm(pad ~ rs7903146 + age + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10, data = df, family = "binomial")
 m2 = glm(pad ~ rs7903146 + t2d + age + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10, data = df, family = "binomial")
@@ -79,6 +80,10 @@ m2 = glm(pad ~ rs7903146 + t2d + age + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 +
 # ---
 
 # Results
+# Total effect of exposure (snp) on outcome (pad) 
+# β1 
+0.04538
+
 # Direct effect of exposure (rs7903146) on outcome (pad) 
 # θ1 
 0.001485
