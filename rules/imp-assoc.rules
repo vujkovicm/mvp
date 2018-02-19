@@ -1,8 +1,8 @@
 ######################################
 # Author: Marijana Vujkovic
-# Date: 01/15/2018
+# Date: 02/19/2018
 #
-# assoc-imp.rules
+# imp-assoc.rules
 ######################################
 
 # create sample
@@ -77,14 +77,31 @@ rule impManhattan:
 		"""
 		Rscript scripts/R/imp/impManhattan.R '{input}' '{output.m}' '{output.q}' '{wildcards.info}' '{output.o}'
 		"""
+		
+rule impPopClean:
+	message:
+		"Reformat GWAS output from imputed {wildcards.phe} for {wildcards.pop}-specific locusZoom"
+	input:
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.out"
+	output:
+		all = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.all",
+		sig = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.sig.out",
+		tab = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.sig.tab"
+	shell:
+		"""
+		Rscript scripts/R/imp/impPopClean.R '{input}' '{output.all}' '{output.sig}' '{output.tab}'
+		"""
 
+#
+# Meta-analysis of 3 populations using METAL
+#
 rule impMetalScript:
 	message:
 		"creating metal script to run imputed {wildcards.phe} meta-analysis"
 	input:
-		eur = "summary/imp/{phe}/{phe}.EUR.imp.info{info}.maf{maf}.wald.out",
-		amr = "summary/imp/{phe}/{phe}.AMR.imp.info{info}.maf{maf}.wald.out",
-		afr = "summary/imp/{phe}/{phe}.AFR.imp.info{info}.maf{maf}.wald.out"
+		eur = "summary/imp/{phe}/{phe}.EUR.imp.info{info}.maf{maf}.score.out",
+		amr = "summary/imp/{phe}/{phe}.AMR.imp.info{info}.maf{maf}.score.out",
+		afr = "summary/imp/{phe}/{phe}.AFR.imp.info{info}.maf{maf}.score.out"
 	output:
 		"scripts/metal/imp/{phe}.META.imp.info{info}.maf{maf}.metal"
 	params:
@@ -108,25 +125,28 @@ rule impMetalRun:
 
 rule impMetalClean:
 	message:
-		"cleaning up metal output from imputed {wildcards.phe} in {wildcards.pop} from {wildcards.program} analysis"
+		"cleaning up metal output from imputed {wildcards.phe} GWAS analysis"
 	input:
-		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.out"
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.meta_1.out"
 	output:
-		all = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.all",
-		sig = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.sig.out",
-		tab = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.sig.tab"
+		all = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.score.all",
+		sig = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.score.sig.out",
+		tab = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.score.sig.tab"
 	shell:
 		"""
 		Rscript scripts/R/imp/impMetalClean.R '{input}' '{output.all}' '{output.sig}' '{output.tab}'
 		"""
 
+#
+# LocusPrep and LocusRun take both population-specific and meta-analyzed output files
+#
 rule impLocusPrep:
 	message:
-		"preparing output from imputed {wildcards.phe} {wildcards.pop} meta-analysis for LocusZoom regional plots"
+		"preparing output from imputed {wildcards.phe} meta-analysis for LocusZoom regional plots"
 	input:
-		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.sig.out"
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.sig.tab"
 	output:
-		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.{program}.locus.ref"
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.locus.ref"
 	shell:
 		"""
 		Rscript scripts/R/imp/impLocusPrep.R '{input}' '{output}'
@@ -136,8 +156,8 @@ rule impLocusRun:
 	message:
 		"[python 2.7] running LocusZoom for significant SNPs in imputed {wildcards.phe} meta-analysis"
 	input:
-		ref = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.locus.ref",
-		lz  = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.out"
+		ref = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.locus.ref",
+		lz  = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.out"
 	output:
 		"summary/imp/{phe}/locus/{phe}.{pop}.locus.txt"
 	shell:
