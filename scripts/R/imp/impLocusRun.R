@@ -2,7 +2,7 @@ rm(list=ls())
 
 args = commandArgs(trailingOnly = TRUE)
 
-# usage:
+# usage [python 2.7]:
 # Rscript scripts/R/imp/impLocusRun.R 'phe' 'pop' 'nfo' 'maf'
 # Rscript scripts/R/imp/impLocusRun.R 'T2D' 'EUR' '0.6' '0.01' 
 
