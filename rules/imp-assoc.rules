@@ -49,7 +49,7 @@ rule impMrgList:
 	message:
 		"creating list of rvtest-chunks from imputed {wildcards.phe} GWAS in {wildcards.pop} population"
 	input:
-		"out/imp/{phe}/{pop}/rvtest/chr1/{phe}.chr1.1.01.SingleWald.assoc"
+		"out/imp/{phe}/{pop}/rvtest/chr1/{phe}.chr1.1.01.SingleScore.assoc"
 	output:
 		"out/imp/{phe}/{pop}/rvtest/rvtest_chunks.lst"
 	shell:
@@ -63,7 +63,7 @@ rule impMrgRvtest:
 	input:
 		"out/imp/{phe}/{pop}/rvtest/rvtest_chunks.lst"
 	output:
-		"summary/imp/{phe}/{phe}.{pop}.imp.maf{maf}.wald.out"
+		"summary/imp/{phe}/{phe}.{pop}.imp.maf{maf}.score.out"
 	shell:
 		"""
 		awk -F' ' 'FNR > 1 {{if ($6 >= {wildcards.maf} && $6 <= (1-{wildcards.maf})) print "chr"$1":"$2,$1,$2,$3,$4,$5,$6,$11,$12,$13}}' out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/*/*.SingleScore.assoc > {output}
@@ -75,11 +75,11 @@ rule impManhattan:
 	message:
 		"creating manhattan and qq-plot from imputed {wildcards.phe} GWAS in {wildcards.pop} population"
 	input:
-		"summary/imp/{phe}/{phe}.{pop}.imp.maf{maf}.wald.out"
+		"summary/imp/{phe}/{phe}.{pop}.imp.maf{maf}.score.out"
 	output:
-		m = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.m.png",
-		q = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.q.png",
-		o = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.out"
+		m = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.m.png",
+		q = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.q.png",
+		o = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.score.out"
 	shell:
 		"""
 		Rscript scripts/R/imp/impManhattan.R '{input}' '{output.m}' '{output.q}' '{wildcards.info}' '{output.o}'
