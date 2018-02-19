@@ -5,7 +5,9 @@
 # imp-assoc.rules
 ######################################
 
-# create sample
+#
+# generate phenotype file for outcome of interest from datacube and config-settings (config/imp-assoc.yaml)
+#
 rule impPheno:
 	message:
 		"creating rvtest sample files for imputed {wildcards.phe} GWAS in {wildcards.pop} population"
@@ -18,7 +20,9 @@ rule impPheno:
 		"""
 		Rscript scripts/R/imp/impPheno.R '{input.cube}' '{input.pca}' '{output}'
 		"""
-
+#
+# extract selected covariates from config file (config/imp-assoc.yaml)
+#
 def impCovar(filename):
 	with open(filename, 'r') as f:
 		str = f.readline()
@@ -27,6 +31,9 @@ def impCovar(filename):
 	words.remove(config['impPHE'][0])
 	return ','.join(words)
 
+#
+# run population-specific GWAS on phenotype of interest
+#
 rule impRvtest:
 	message:
 		"running imputed {wildcards.phe} GWAS in rvtest in {wildcards.pop} population [chr {wildcards.chr}; i {wildcards.i}; j {wildcards.j}]"
@@ -93,7 +100,7 @@ rule impPopClean:
 		"""
 
 #
-# Meta-analysis of 3 populations using METAL
+# meta-analysis of 3 populations using METAL
 #
 rule impMetalScript:
 	message:
@@ -138,7 +145,7 @@ rule impMetalClean:
 		"""
 
 #
-# LocusPrep and LocusRun take both population-specific and meta-analyzed output files
+# impLocusPrep.R and impLocusRun.R accept population-specific AND meta-analyzed output files [Anaconda 2]
 #
 rule impLocusPrep:
 	message:
