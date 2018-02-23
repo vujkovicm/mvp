@@ -1,5 +1,8 @@
 # Remarks:
-# europeans + PCA's selected according to HARE definition (Assimes lab)
+#
+# Sobel's mediation method is only for continuous outcomes
+#
+# europeans + PCA's selected according to HARE definition (Tang lab)
 # pad is a composite variable of p_pad5c (cases) and p_pad_control (controls) (could be totally wrong here)
 # e.g. the case and control counts do not completely overlap with the MVP PAD powerpoint by Klarin & Damrauer
 
