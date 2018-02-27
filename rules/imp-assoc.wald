@@ -1,0 +1,160 @@
+######################################
+# Author: Marijana Vujkovic
+# Date: 02/27/2018
+#
+# imp-assoc.wald
+######################################
+
+def impCovar(filename):
+	with open(filename, 'r') as f:
+		str = f.readline()
+	words = str.split()
+	del words[0:5]
+	words.remove(config['impPHE'][0])
+	return ','.join(words)
+
+rule waldRvtest:
+	message:
+		"running imputed {wildcards.phe} GWAS in rvtest in {wildcards.pop} population [chr {wildcards.chr}; i {wildcards.i}; j {wildcards.j}]"
+	input:
+		phe = "out/imp/{phe}/{phe}.{pop}.phe"
+	output:
+		"out/imp/{phe}/{pop}/rvtest/chr{chr}/{phe}.chr{chr}.{i}.{j}.SingleWald.assoc"
+	run:
+		covar = impCovar(input.phe)
+		shell("""rvtest --noweb --inVcf /data/data1/mvp001/mvp_imputed/1kg.ref_v20170306/chr{wildcards.chr}/chr{wildcards.chr}.{wildcards.i}.{wildcards.j}.dose.vcf.gz --pheno {input.phe} --pheno-name {wildcards.phe}	--covar {input.phe} --covar-name {covar} --single wald --impute drop --dosage DS --out out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/chr{wildcards.chr}/{wildcards.phe}.chr{wildcards.chr}.{wildcards.i}.{wildcards.j}""")
+
+rule waldMrgList:
+	message:
+		"creating list of rvtest-chunks from imputed {wildcards.phe} GWAS in {wildcards.pop} population"
+	input:
+		"out/imp/{phe}/{pop}/rvtest/chr1/{phe}.chr1.1.01.SingleWald.out"
+	output:
+		"out/imp/{phe}/{pop}/rvtest/rvtest_chunks.wald.lst"
+	shell:
+		"""
+		file out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/*/*.out | sed 's/[:].$//' >> {output}
+		"""
+
+rule waldAdditive:
+	input:
+		"out/imp/{phe}/{pop}/rvtest/chr{chr}/{phe}.chr{chr}.{i}.{j}.SingleWald.assoc"
+	output:
+		"out/imp/{phe}/{pop}/rvtest/chr{chr}/{phe}.chr{chr}.{i}.{j}.SingleWald.out"
+	shell:
+		"""
+		grep -v "AGE|SEX|PC" {input} > {output}
+		"""
+
+rule waldMrgRvtest:
+	message:
+		"merging rvtest chunks with MAF > {wildcards.maf} from imputed {wildcards.phe} GWAS in {wildcards.pop} population"
+	input:
+		"out/imp/{phe}/{pop}/rvtest/rvtest_chunks.wald.lst"
+	output:
+		"summary/imp/{phe}/{phe}.{pop}.imp.maf{maf}.wald.out"
+	shell:
+		"""
+		awk -F' ' 'FNR > 1 {{if ($6 >= {wildcards.maf} && $6 <= (1-{wildcards.maf})) print "chr"$1":"$2,$1,$2,$3,$4,$5,$7,$8,$9}}' out/imp/{wildcards.phe}/{wildcards.pop}/rvtest/*/*.SingleWald.assoc > {output}
+                # inser space seperated header to this file
+                sed -i '1 i\CHRCBP CHR POS NEA EA N_INFORMATIVE EAF EFFECT SE PVALUE' {output}
+		"""
+
+rule waldManhattan:
+	message:
+		"creating manhattan and qq-plot from imputed {wildcards.phe} GWAS in {wildcards.pop} population"
+	input:
+		"summary/imp/{phe}/{phe}.{pop}.imp.maf{maf}.wald.out"
+	output:
+		m = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.m.png",
+		q = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.q.png",
+		o = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.out"
+	shell:
+		"""
+		Rscript scripts/R/imp/impManhattan.R '{input}' '{output.m}' '{output.q}' '{wildcards.info}' '{output.o}'
+		"""
+
+###################
+##### META ANALYSIS
+###################
+
+rule waldMetalScript:
+	message:
+		"creating metal script to run imputed {wildcards.phe} meta-analysis"
+	input:
+		eur = "summary/imp/{phe}/{phe}.EUR.imp.info{info}.maf{maf}.wald.out",
+		amr = "summary/imp/{phe}/{phe}.AMR.imp.info{info}.maf{maf}.wald.out",
+		afr = "summary/imp/{phe}/{phe}.AFR.imp.info{info}.maf{maf}.wald.out"
+	output:
+		"scripts/metal/imp/{phe}.META.imp.info{info}.maf{maf}.wald.metal"
+	params:
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.wald.meta_ .out"
+	shell:
+		"""
+		Rscript scripts/R/imp/impMetalScript.R '{output}' '{input.eur}' '{input.amr}' '{input.afr}' '{params}'
+		"""
+
+rule waldMetalRun:
+	message:
+		"running metal for imputed {wildcards.phe} meta-analysis"
+	input:
+		"scripts/metal/imp/{phe}.META.imp.info{info}.maf{maf}.wald.metal"
+	output:
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.wald.meta_1.out"
+	shell:
+		"""
+		metal '{input}'
+		"""
+
+rule waldMetalClean:
+	message:
+		"cleaning up metal output from imputed {wildcards.phe} GWAS analysis"
+	input:
+		"summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.wald.meta_1.out"
+	output:
+		all = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.wald.all",
+		sig = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.wald.sig.out",
+		tab = "summary/imp/{phe}/{phe}.META.imp.info{info}.maf{maf}.wald.sig.tab"
+	shell:
+		"""
+		Rscript scripts/R/imp/impMetalClean.R '{input}' '{output.all}' '{output.sig}' '{output.tab}'
+		"""
+
+rule waldPopClean:
+	message:
+		"Prepare GWAS output from imputed {wildcards.phe} for {wildcards.pop}-specific locusZoom"
+	input:
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.out"
+	output:
+		all = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.all",
+		sig = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.sig.out",
+		tab = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.sig.tab"
+	shell:
+		"""
+		Rscript scripts/R/imp/impPopClean.R '{input}' '{output.all}' '{output.sig}' '{output.tab}'
+		"""
+
+rule waldLocusPrep:
+	message:
+		"preparing output from imputed {wildcards.phe} meta-analysis for LocusZoom regional plots"
+	input:
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.sig.tab"
+	output:
+		"summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.locus.ref"
+	shell:
+		"""
+		Rscript scripts/R/imp/impLocusPrep.R '{input}' '{output}'
+		"""
+
+rule waldLocusRun:
+	message:
+		"[python 2.7] running LocusZoom for significant SNPs in imputed {wildcards.phe} meta-analysis"
+	input:
+		ref = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.locus.ref",
+		lz  = "summary/imp/{phe}/{phe}.{pop}.imp.info{info}.maf{maf}.wald.out"
+	output:
+		"summary/imp/{phe}/locus/{phe}.{pop}.wald.locus.txt"
+	shell:
+		"""
+		Rscript scripts/R/imp/impLocusRun.R '{wildcards.phe}' '{wildcards.pop}' '{wildcards.info}' '{wildcards.maf}' 'wald'
+		"""

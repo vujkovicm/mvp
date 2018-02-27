@@ -1,0 +1,62 @@
+######################################
+# Author: Marijana Vujkovic
+# Date: 02/27/2018
+#
+# imp-target.score
+######################################
+
+rule make_scoreRvtest_1:
+	input:
+		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".SingleScore.assoc" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(1, 3) for i in range(1, 6) for j in range(1, 11) ]
+
+rule make_scoreRvtest_2:
+        input:
+                [ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".SingleScore.assoc" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(3, 6) for i in range(1, 5) for j in range(1, 11) ]
+
+rule make_scoreRvtest_3:
+	input:
+		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".SingleScore.assoc" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(6, 13) for i in range(1, 4) for j in range(1, 11) ]
+
+rule make_scoreRvtest_4:
+	input:
+		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".SingleScore.assoc" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(13, 18) for i in range(1, 3) for j in range(1, 11) ]
+
+rule make_scoreRvtest_5:
+	input:
+		[ "out/imp/" + phe + "/" + pop + "/rvtest/chr" + str(chr) + "/" + phe + ".chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".SingleScore.assoc" for phe in config['impPHE'] for pop in config['impPOP'] for chr in range(18, 23) for i in range(1, 2) for j in range(1, 11) ]
+
+rule make_scoreMaf:
+	input:
+		 [ "summary/imp/" + phe + "/" + phe + "." + pop + ".imp.maf" + maf + ".score.out" for phe in config['impPHE'] for pop in config['impPOP'] for info in config['impINFO'] for maf in config['impMAF'] ]
+
+rule make_scoreManhattan:
+	input:
+		 [ "summary/imp/" + phe + "/" + phe + "." + pop + ".imp.info" + info + ".maf" + maf + ".score.m.png" for phe in config['impPHE'] for pop in config['impPOP'] for info in config['impINFO'] for maf in config['impMAF'] ]
+
+rule make_scoreMetalScript:
+	input:
+		 [ "scripts/metal/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf + ".score.metal" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF']]
+
+rule make_scoreMetalRun:
+	input:
+		 [ "summary/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf +".score.meta_1.out" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
+
+rule make_scoreMetalClean:
+	input:
+		  [ "summary/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf + ".score.all" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
+
+rule make_scorePopclean:
+	input:
+		 [ "summary/imp/" + phe + "/" + phe + "." + pop +".imp.info" + info + ".maf" + maf + ".score.all" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] for pop in ['EUR', 'AFR', 'AMR'] ]
+
+rule make_scoreMetalManhattan:
+	input:
+		["summary/imp/" + phe + "/" + phe + ".META.imp.info" + info + ".maf" + maf + ".score.meta_1.m.png" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] ]
+
+rule make_scoreLocusPrep:
+	input:
+		[ "summary/imp/" + phe + "/" + phe + "." + pop + ".imp.info" + info + ".maf" + maf + ".score.locus.ref" for phe in config['impPHE'] for info in config['impINFO'] for maf in config['impMAF'] for pop in ['META', 'AMR', 'AFR', 'EUR']]
+
+rule make_scoreLocusRun:
+	input:
+		  [ "summary/imp/" + phe + "/locus/" + phe + ".score.locus.txt" for phe in config['impPHE'] ]
