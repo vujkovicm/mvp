@@ -1,0 +1,26 @@
+rule make_extract:
+	input:
+		[ "summary/imp/" + phe + "/" + extract + "/tmp/chr" + str(chr) + "." + str(i) + "." + str(j).zfill(2) + ".log" for phe in config['impPHE'] for extract in config['impEXTRACT'] for chr in range(1, 23) for i in range(1, 6) for j in range(1, 11) ]
+
+rule make_extractX:
+	input:
+		 [ "summary/imp/" + phe + "/" + extract + "/tmp/chr23." + str(i) + "." + str(j).zfill(2) + ".fam" for phe in config['impPHE'] for extract in config['impEXTRACT'] for i in range(1, 4) for j in range(1, 11) ]
+
+rule make_list:
+	input:
+		[ "summary/imp/" + phe + "/" + extract + "/" + extract + ".list" for phe in config['impPHE'] for extract in config['impEXTRACT'] ]
+
+rule extract_merge:
+	input:
+		[ "summary/imp/" + phe + "/" + extract + "/" + extract + ".bed" for phe in config['impPHE'] for extract in config['impEXTRACT'] ]
+
+rule extract_pop:
+	input:
+		[ "summary/imp/" + phe + "/" + extract + "/" + extract + "_" + pop + ".bed" for phe in config['impPHE'] for extract in config['impEXTRACT'] for pop in config['impPOP']]
+
+rule extract_raw:
+	input:
+		[ "summary/imp/" + phe + "/" + extract + "/" + extract + "_" + pop + ".raw" for phe in config['impPHE'] for extract in config['impEXTRACT'] for pop in config['impPOP']]
+
+
+
