@@ -1,0 +1,112 @@
+rule extract:
+	message:
+		"extract snps from {wildcards.extract} list"
+	input:
+		"extract/{extract}.snps"
+	output:
+		"summary/imp/{phe}/{extract}/tmp/chr{chr}.{i}.{j}.log"
+	shell:
+		"""
+		echo "Hello, world!" > summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/chr1.1.01.wtf;
+		plink2a --memory 90960 \
+		--pfile /scratch/scratch2/mvp001/jiehuang/tmp/chr{wildcards.chr}/chr{wildcards.chr}.{wildcards.i}.{wildcards.j} \
+		--extract {input} \
+		--make-bed \
+		--out summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/chr{wildcards.chr}.{wildcards.i}.{wildcards.j}
+		# generate new bim file
+		awk '{{print $1, "chr"$1":"$4":"$5":"$6, $3, $4, $5, $6}}' summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/chr{wildcards.chr}.{wildcards.i}.{wildcards.j}.bim > summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/chr{wildcards.chr}.{wildcards.i}.{wildcards.j}.new.bim
+		"""
+
+rule extractX:
+	message:
+		"extract SNPs from chromosome X"
+	input:
+		"extract/{extract}.snps"
+	output:
+		"summary/imp/{phe}/{extract}/tmp/chr23.{i}.{j}.fam"
+	shell:
+		"""
+		echo "Hello, world!" > summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/chr1.1.01.wtf;
+		plink2a --bfile /group/research/mvp001/team/jin4/CAD/ChrX.plink.format/chrX.{wildcards.i}.{wildcards.j}.sexupdated \
+		--extract {input} \
+		--make-bed \
+		--out summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/chr23.{wildcards.i}.{wildcards.j}
+		awk '{{print $1, "chr"$1":"$4":"$5":"$6, $3, $4, $5, $6}}' summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/chr23.{wildcards.i}.{wildcards.j}.bim > summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/chr23.{wildcards.i}.{wildcards.j}.new.bim
+		"""
+
+rule list:
+	message:
+		"make list"
+	input:
+		"summary/imp/{phe}/{extract}/tmp/chr1.1.01.wtf"
+	output:
+		"summary/imp/{phe}/{extract}/{extract}.list"
+	shell:
+		"""
+		# put all bed bim bam into a list
+		for f in summary/imp/{wildcards.phe}/{wildcards.extract}/tmp/*.bed; do
+		# remove postfix from f
+		F="${{f%.*}}"
+		echo $F.bed $F.new.bim $F.fam >> {output} 
+		done
+		"""
+
+rule merge:
+	message:
+		"merge list"
+	input:
+		"summary/imp/{phe}/{extract}/{extract}.list"
+	output:
+		"summary/imp/{phe}/{extract}/{extract}.bed"
+	shell:
+		"""
+		# ALL
+		plink2 --noweb \
+		--merge-list {input} \
+		--make-bed \
+		--out summary/imp/{wildcards.phe}/{wildcards.extract}/{wildcards.extract}
+		"""
+
+rule splitpop:
+	message:
+		"split to populations"
+	input:
+		"summary/imp/{phe}/{extract}/{extract}.bed"
+	output:
+		"summary/imp/{phe}/{extract}/{extract}_{pop}.bed"
+	shell:
+		"""
+		plink2 --allow-no-sex \
+                --bfile summary/imp/{wildcards.phe}/{wildcards.extract}/{wildcards.extract} \
+                --make-bed \
+		--keep pop/MVP001.{wildcards.pop}.ids \
+                --out summary/imp/{wildcards.phe}/{wildcards.extract}/{wildcards.extract}_{wildcards.pop}
+		"""
+
+rule rawmerge:
+	message:
+		"convert extracted snps to plain text"
+	input:
+		"summary/imp/{phe}/{extract}/{extract}_{pop}.bed"
+	output:
+		"summary/imp/{phe}/{extract}/{extract}_{pop}.raw"
+	shell:
+		"""
+		plink2a --memory 90960 --allow-no-sex --allow-extra-chr \
+		--bfile  summary/imp/{wildcards.phe}/{wildcards.extract}/{wildcards.extract}_{wildcards.pop} \
+		--recode A \
+		--out summary/imp/{wildcards.phe}/{wildcards.extract}/{wildcards.extract}_{wildcards.pop}
+		"""
+
+rule phewas_python:
+	message:
+		"prepare data for phewas"
+	input:
+		"summary/imp/{phe}/{extract}/{extract}_{pop}.raw"
+	output:
+		"summary/imp/{phe}/{extract}/{extract}_{pop}.stop"
+	shell:
+		"""
+		# prepare data for phewas
+		bsub -M 90960 Rscript scripts/R/imp/impPhewas.R '{wildcards.phe}' '{wildcards.extract}' '{wildcards.pop}'
+		"""
