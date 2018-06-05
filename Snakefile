@@ -9,6 +9,9 @@ include: "rules/imp-assoc.score"
 
 include: "rules/imp-assoc.wald"
 include: "rules/imp-target.wald"
-  
+
+include: "rules/imp-extract.rules"
+include: "rules/imp-extract.target"
+
 # run jobs like a boss 
 # snakemake -j 900 --keep-going -c "bsub -M 30960" target
